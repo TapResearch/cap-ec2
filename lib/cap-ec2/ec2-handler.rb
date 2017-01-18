@@ -13,10 +13,14 @@ module CapEC2
 
     def ec2_connect(region=nil)
       Aws.config.update({
-        credentials: Aws::Credentials.new(fetch(:ec2_access_key_id) || ENV.fetch('AWS_ACCESS_KEY_ID'), fetch(:ec2_secret_access_key) || ENV.fetch('AWS_SECRET_ACCESS_KEY'))
+        credentials: Aws::Credentials.new(
+          (fetch(:ec2_access_key_id) || ENV.fetch('AWS_ACCESS_KEY_ID')),
+          (fetch(:ec2_secret_access_key) || ENV.fetch('AWS_SECRET_ACCESS_KEY'))
+        ),
+        region: (region || fetch(:ec2_region) || ENV['AWS_REGION'])
       })
 
-      return Aws::EC2::Resource.new(region: region)
+      return Aws::EC2::Resource.new
     end
 
     def status_table
@@ -94,7 +98,7 @@ module CapEC2
 
     def instance_has_tag?(instance, key, value)
       instance.tags.select{|tag| tag.key == key}.first != nil or return false
-      
+
       (instance.tags.select{|tag| tag.key == key}.first.value || '').split(',').map(&:strip).include?(value.to_s)
     end
 
